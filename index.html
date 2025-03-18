@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+       body {
+    background: #f0f0f0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    background-image: url('flower background.avif');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+
+        #greetings {
+            font-size: 1.5em;
+            margin: 15px;
+            text-align: center;
+        }
+        #messages {
+            list-style: none;
+            padding: 10px;
+            width: 90%;
+            max-width: 500px;
+            height: 60vh;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
+    background-image: url('pink flower.jpg'); /* Optional background image */
+    background-size: cover;
+        }
+        #messages li {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        #messages li:nth-child(even) {
+            background: #e0ffe0;
+        }
+        #myform {
+            display: flex;
+            gap: 10px;
+            width: 90%;
+            max-width: 500px;
+            margin-top: 10px;
+        }
+        #m {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            background: #007BFF;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="greetings">Hi Buddy!</div>
+    <ul id="messages"></ul>
+    <form id="myform">
+        <input type="text" id="m" autocomplete="off" placeholder="Type a message..." required>
+        <button type="submit">Send</button>
+    </form>
+
+    <script>
+        var socket = io();
+        var username;
+
+        $("#myform").submit(function(e) {
+            e.preventDefault();
+            let message = $("#m").val().trim();
+            if (message !== "") {
+                $("#messages").append(`<li><strong>You:</strong> ${message}</li>`);
+                socket.emit('chat message', username + ": " + message);
+                $("#m").val("").focus();
+                scrollToBottom();
+            }
+        });
+
+        socket.on('username', function(data) {
+            username = data;
+            $("#greetings").text("Hi " + username + "!");
+        });
+
+        socket.on('chat message', function(msg) {
+            $("#messages").append(`<li>${msg}</li>`);
+            scrollToBottom();
+        });
+
+        socket.on('user_connected', function(msg) {
+            $("#messages").append(`<li><em>${msg}</em></li>`);
+        });
+
+        socket.on('user_disconnected', function(msg) {
+            $("#messages").append(`<li><em>${msg} disconnected</em></li>`);
+        });
+
+        function scrollToBottom() {
+            let messages = document.getElementById("messages");
+            messages.scrollTop = messages.scrollHeight;
+        }
+    </script>
+</body>
+</html>
